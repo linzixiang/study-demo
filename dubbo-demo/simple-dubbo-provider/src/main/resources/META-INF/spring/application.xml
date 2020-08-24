@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd        http://dubbo.apache.org/schema/dubbo        http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
+    <!-- 提供方应用信息，用于计算依赖关系 -->
+    <dubbo:application name="dubbo-provider"  />
+
+    <!--
+        不配置注册中心
+        <dubbo:registry address="N/A"/>
+        使用multicast广播注册中心暴露服务地址
+        <dubbo:registry address="multicast://224.5.6.7:1234" />
+    -->
+    <!-- 使用zookeeper作为注册中心 -->
+    <dubbo:registry id="zk" address="zookeeper://139.196.72.210:2181"/>
+
+    <!-- 用dubbo协议在20880端口暴露服务 -->
+    <dubbo:protocol name="dubbo" port="20880" />
+    <!-- 用webservice协议在8080端口暴露服务 -->
+    <dubbo:protocol name="webservice" port="8085" server="jetty"/>
+    <!-- 用rest协议在8081端口暴露服务 -->
+    <dubbo:protocol name="rest" port="8086" server="jetty"/>
+
+    <!-- 声明需要暴露的服务接口 -->
+    <!--
+        服务发布：dubbo://192.168.56.1:20880/com.linzx.service.IDemoService?anyhost=true&application=dubbo-provider&bean.name=com.linzx.service.IDemoService&bind.ip=192.168.56.1&bind.port=20880&deprecated=false&dubbo=2.0.2&dynamic=true&generic=false&interface=com.linzx.service.IDemoService&methods=helloDemo&pid=11524&register=true&release=2.7.3&side=provider&timestamp=1596199109950
+        服务发布在zookeeper存放路径：/dubbo/com.linzx.service.IDemoService/providers
+        registry: 多注册中心需要指定注册中心的id
+        protocol: 默认dubbo协议，同时指定多个逗号分隔
+            访问webservice暴露的服务：http://localhost:8080/com.linzx.service.IDemoService?wsdl
+            访问rest暴露的服务
+    -->
+    <dubbo:service interface="com.linzx.api.service.IDemoService" ref="demoService" registry="zk" protocol="dubbo,webservice"/>
+    <!-- rest服务发布，访问地址：http://localhost:8081/demo/helloDemo/xxx -->
+    <dubbo:service interface="com.linzx.api.service.IRestService" ref="restService" registry="zk" protocol="rest"/>
+
+    <!-- 和本地bean一样实现服务 -->
+    <bean id="demoService" class="com.linzx.simple.service.DemoService" />
+    <bean id="restService" class="com.linzx.simple.service.RestService" />
+</beans>
